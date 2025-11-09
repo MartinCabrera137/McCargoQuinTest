@@ -1,4 +1,6 @@
+import 'package:cargoquintest/core/utils/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:nb_utils/nb_utils.dart';
 import '../../../../core/formatters/currency_formatter.dart';
 import '../../controllers/category_usage_provider.dart';
 
@@ -7,14 +9,16 @@ class CategoryUsageTile extends StatelessWidget {
   const CategoryUsageTile({super.key, required this.usage});
 
   Color _barColor() {
-    if (usage.overLimit) return const Color(0xFFE74C3C); // rojo
-    if (usage.nearLimit) return const Color(0xFFF39C12); // narajan
-    return const Color(0xFF2ECC71); // verde
+    if (usage.overLimit) return AppCustomColors.errorRed;
+    if (usage.nearLimit) return AppCustomColors.warningOrange;
+    return AppCustomColors.primaryBlue;
   }
 
   @override
   Widget build(BuildContext context) {
-    final titleColor = const Color(0xFF0D2A8A);
+    final p = usage.budget <= 0 ? (usage.spent > 0 ? 1000.0 : 0.0) : (usage.spent / usage.budget) * 100.0;
+    final showNear = p >= 80 && p <= 100;
+    final showOver = p > 100;
 
     return Container(
       decoration: BoxDecoration(
@@ -26,69 +30,52 @@ class CategoryUsageTile extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // categoria y chip de excesp
           Row(
             children: [
-              Expanded(
-                child: Text(
-                  usage.categoryName,
-                  style: TextStyle(
-                    color: titleColor,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-              if (usage.overLimit)
-                const _Chip(text: 'Excedido')
-              else if (usage.nearLimit)
-                const _Chip(text: 'Cerca del límite'),
+              Expanded(child: Text(usage.categoryName, style: boldTextStyle(size: 18))),
+              if (showOver)
+                _PulsingChip(text: 'Límite excedido', color: AppCustomColors.errorRed, maxScale: 1.14)
+              else if (showNear)
+                _PulsingChip(text: 'Cerca del límite', color: AppCustomColors.primaryBlue, maxScale: 1.08),
             ],
           ),
-          const SizedBox(height: 6),
-
-          // Presupuesto y gasto
-          Row(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Text(
-                  'Presupuesto: ${formatMXN(usage.budget)}',
-                  style: const TextStyle(fontSize: 13, color: Colors.black54),
-                ),
-              ),
-              Text(
-                'Gastado: ${formatMXN(usage.spent)}',
-                style: const TextStyle(fontSize: 13, color: Colors.black54),
-              ),
+              Text('Presupuesto', style: primaryTextStyle()),
+              Text(formatMXN(usage.budget), style: primaryTextStyle(size: 24, letterSpacing: 2.5)),
             ],
           ),
-          const SizedBox(height: 10),
-
-          // porcentaje
+          const SizedBox(height: 4),
           Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('${(usage.budget == 0 && usage.spent == 0) ? 0 : (usage.spent / (usage.budget == 0 ? usage.spent == 0 ? 1 : usage.spent : usage.budget) * 100).clamp(0, 100).toStringAsFixed(0)}%',
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
-              ),
+              Text('Gastado: ${formatMXN(usage.spent)}', style: secondaryTextStyle()),
             ],
           ),
-
-          // Barra de progreso
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: SizedBox(
-              height: 12,
+              height: 16,
               child: Stack(
                 children: [
-                  Container(color: const Color(0xFFECEFF3)),
+                  Container(color: const Color(0xFFEFF2F7)),
                   FractionallySizedBox(
                     alignment: Alignment.centerLeft,
-                    widthFactor: usage.percent,
+                    widthFactor: usage.percent.clamp(0.0, 1.0),
                     child: Container(color: _barColor()),
                   ),
                 ],
               ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Text(
+              'Disponible: ${formatMXN((usage.budget - usage.spent))}',
+              style: secondaryTextStyle(),
+              textAlign: TextAlign.center,
             ),
           ),
         ],
@@ -97,21 +84,33 @@ class CategoryUsageTile extends StatelessWidget {
   }
 }
 
-class _Chip extends StatelessWidget {
+class _PulsingChip extends StatefulWidget {
   final String text;
-  const _Chip({required this.text});
+  final Color color;
+  final double maxScale;
+  const _PulsingChip({required this.text, required this.color, required this.maxScale});
+
+  @override
+  State<_PulsingChip> createState() => _PulsingChipState();
+}
+
+class _PulsingChipState extends State<_PulsingChip> with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 800))..repeat(reverse: true);
+  @override
+  void dispose() { _c.dispose(); super.dispose(); }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFFEDE7F6),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF5E35B1)),
+    return ScaleTransition(
+      scale: Tween(begin: 1.0, end: widget.maxScale).animate(CurvedAnimation(parent: _c, curve: Curves.easeInOut)),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+        decoration: BoxDecoration(
+          color: widget.color.withAlpha(64),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: widget.color, width: 1.2),
+        ),
+        child: Text(widget.text, style: boldTextStyle(color: widget.color, size: 12)),
       ),
     );
   }

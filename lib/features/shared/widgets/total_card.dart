@@ -1,4 +1,6 @@
+import 'package:cargoquintest/core/utils/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:nb_utils/nb_utils.dart';
 
 class TotalCard extends StatelessWidget {
   final String title;
@@ -18,12 +20,12 @@ class TotalCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: TextStyle(color: titleColor, fontSize: 22, fontWeight: FontWeight.w800)),
-          const SizedBox(height: 8),
+          Text(title, style: boldTextStyle(color: AppCustomColors.primaryBlue, size: 24)),
           Text(
             amountText,
-            style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w800, letterSpacing: -0.5),
+            style: primaryTextStyle(size: 36, letterSpacing: -0.5),
           ),
+
         ],
       ),
     );
