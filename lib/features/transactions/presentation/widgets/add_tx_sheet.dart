@@ -79,9 +79,35 @@ class _AddTxSheetState extends State<AddTxSheet> {
                     children: [
                       Expanded(
                         child: SegmentedButton<TxType>(
-                          segments: const [
-                            ButtonSegment(value: TxType.expense, icon: Icon(Icons.remove_circle), label: Text('Gasto')),
-                            ButtonSegment(value: TxType.income, icon: Icon(Icons.add_circle), label: Text('Ingreso')),
+                          style: ButtonStyle(
+                            shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                            side: WidgetStateProperty.resolveWith<BorderSide>((states) {
+                              final cs = Theme.of(context).colorScheme;
+                              final focusedOrSelected = states.contains(WidgetState.selected) || states.contains(WidgetState.focused);
+                              return BorderSide(color: focusedOrSelected ? AppCustomColors.primaryBlue : cs.outlineVariant, width: focusedOrSelected ? 2 : 1.4);
+                            }),
+                            backgroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
+                              final cs = Theme.of(context).colorScheme;
+                              return states.contains(WidgetState.selected) ? AppCustomColors.primaryBlue.withAlpha(32) : cs.surface;
+                            }),
+                            foregroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
+                              final cs = Theme.of(context).colorScheme;
+                              return states.contains(WidgetState.selected) ? AppCustomColors.primaryBlue : cs.onSurfaceVariant;
+                            }),
+                            padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 12, vertical: 10)),
+                            visualDensity: VisualDensity.compact,
+                          ),
+                          segments: [
+                            ButtonSegment(
+                              value: TxType.expense,
+                              icon: Icon(Icons.remove_circle, color: AppCustomColors.primaryBlue),
+                              label: Text('Gasto', style: primaryTextStyle()),
+                            ),
+                            ButtonSegment(
+                              value: TxType.income,
+                              icon: Icon(Icons.add, color: AppCustomColors.primaryBlue),
+                              label: Text('Ingreso', style: primaryTextStyle()),
+                            ),
                           ],
                           selected: {_type},
                           onSelectionChanged: (s) => setState(() => _type = s.first),
@@ -95,15 +121,8 @@ class _AddTxSheetState extends State<AddTxSheet> {
                     DropdownButtonFormField<String>(
                       initialValue: _categoryId,
                       //
-                      decoration: dropListDecorator(
-                        context,
-                        label: 'Categoria',
-                        prefixIcon: Icons.list,
-                      ),
-                      icon: Icon(
-                          Icons.expand_more,
-                          color: AppCustomColors.primaryBlue
-                      ),
+                      decoration: dropListDecorator(context, label: 'Categoria', prefixIcon: Icons.list),
+                      icon: Icon(Icons.expand_more, color: AppCustomColors.primaryBlue),
                       borderRadius: BorderRadius.circular(16),
                       dropdownColor: Theme.of(context).colorScheme.surface,
                       items: categories.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
@@ -139,7 +158,7 @@ class _AddTxSheetState extends State<AddTxSheet> {
 
                   Row(
                     children: [
-                      Expanded(child: Text('Fecha: ${_date.toLocal().toString().split(' ').first}', style: primaryTextStyle())),
+                      Expanded(child: Text('Fecha del Movimiento: ${_date.toLocal().toString().split(' ').first}', style: primaryTextStyle())),
                       AppButton(
                         color: AppCustomColors.primaryBlueWithAlpha,
                         shapeBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
