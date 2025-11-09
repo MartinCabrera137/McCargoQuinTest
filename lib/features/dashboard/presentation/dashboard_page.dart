@@ -1,4 +1,5 @@
 // lib/features/dashboard/presentation/dashboard_page.dart
+import 'package:cargoquintest/core/utils/colors.dart';
 import 'package:cargoquintest/features/shared/widgets/total_Card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -290,6 +291,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
+          backgroundColor: AppCustomColors.primaryBlue,
         onPressed: () async {
           //Validar presupuesto antes de abrir AddTx
           final need = await ref.refresh(shouldAskBudgetsProvider.future);
@@ -328,7 +330,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
             ref.invalidate(monthTxsProvider);
           }
         },
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.add, color: Colors.white,size: 24),
       ),
     );
   }
