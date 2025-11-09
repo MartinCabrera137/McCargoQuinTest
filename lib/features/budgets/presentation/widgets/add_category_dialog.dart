@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../shared/widgets/Custom_text_fromfield.dart';
 import 'package:nb_utils/nb_utils.dart';
 
+import '../../../shared/widgets/drop_list_decorator.dart';
+
 
 class AddCategoryResult {
   final String id;
@@ -56,7 +58,7 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
               DropdownButtonFormField<String>(
                 isExpanded: true,
                 style: primaryTextStyle(), // nb_utils
-                decoration: _outlinedDecoration(
+                decoration: dropListDecorator(
                   context,
                   label: 'Selecciona de la lista',
                   prefixIcon: Icons.list,
@@ -145,39 +147,6 @@ class _AddCategoryDialogState extends State<AddCategoryDialog> {
           },
         ),
       ],
-    );
-  }
-
-  InputDecoration _outlinedDecoration(BuildContext context, {
-    required String label,
-    IconData? prefixIcon,
-    bool highlighted = false,
-  }) {
-    final cs = Theme.of(context).colorScheme;
-    final borderRadius = BorderRadius.circular(12);
-    final baseColor = highlighted ? AppCustomColors.primaryBlue : cs.outlineVariant;
-    return InputDecoration(
-      labelText: label,
-      isDense: true,
-      prefixIcon: prefixIcon != null
-          ? Icon(prefixIcon, color: AppCustomColors.primaryBlue)
-          : null,
-      enabledBorder: OutlineInputBorder(
-        borderRadius: borderRadius,
-        borderSide: BorderSide(color: baseColor, width: 1.4),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: borderRadius,
-        borderSide: BorderSide(color: AppCustomColors.primaryBlue, width: 2),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: borderRadius,
-        borderSide: BorderSide(color: AppCustomColors.errorRed, width: 1.4),
-      ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderRadius: borderRadius,
-        borderSide: BorderSide(color: AppCustomColors.errorRed, width: 2),
-      ),
     );
   }
 

@@ -1,7 +1,10 @@
+import 'package:cargoquintest/features/shared/widgets/Custom_text_fromfield.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:nb_utils/nb_utils.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../app/providers.dart';
+import '../../../../core/utils/colors.dart';
 import '../../../../core/utils/date_utils.dart';
 import '../../../../domain/entities/tx.dart';
 import '../../../../domain/entities/category.dart';
@@ -9,9 +12,11 @@ import '../../../budgets/controllers/budget_check_provider.dart';
 import '../../../budgets/controllers/category_usage_provider.dart';
 import '../../../dashboard/controllers/month_txs_provider.dart';
 import '../../../dashboard/controllers/totals_provider.dart';
+import '../../../shared/widgets/drop_list_decorator.dart';
 
 class AddTxSheet extends StatefulWidget {
   final bool isExpenseDefault;
+
   const AddTxSheet({super.key, this.isExpenseDefault = true});
 
   @override
@@ -57,10 +62,7 @@ class _AddTxSheetState extends State<AddTxSheet> {
 
         final List<Category> categories = ref.watch(categoriesProvider);
         return Padding(
-          padding: EdgeInsets.only(
-            left: 16, right: 16, top: 16,
-            bottom: 16 + MediaQuery.of(context).viewInsets.bottom,
-          ),
+          padding: EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 16 + MediaQuery.of(context).viewInsets.bottom),
           child: Form(
             key: _formKey,
             child: SingleChildScrollView(
@@ -68,26 +70,18 @@ class _AddTxSheetState extends State<AddTxSheet> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    height: 4, width: 40, margin: const EdgeInsets.only(bottom: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.black12, borderRadius: BorderRadius.circular(2),
-                    ),
+                    height: 4,
+                    width: 40,
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(color: Colors.black12, borderRadius: BorderRadius.circular(2)),
                   ),
                   Row(
                     children: [
                       Expanded(
                         child: SegmentedButton<TxType>(
                           segments: const [
-                            ButtonSegment(
-                              value: TxType.expense,
-                              icon: Icon(Icons.remove_circle),
-                              label: Text('Gasto'),
-                            ),
-                            ButtonSegment(
-                              value: TxType.income,
-                              icon: Icon(Icons.add_circle),
-                              label: Text('Ingreso'),
-                            ),
+                            ButtonSegment(value: TxType.expense, icon: Icon(Icons.remove_circle), label: Text('Gasto')),
+                            ButtonSegment(value: TxType.income, icon: Icon(Icons.add_circle), label: Text('Ingreso')),
                           ],
                           selected: {_type},
                           onSelectionChanged: (s) => setState(() => _type = s.first),
@@ -99,20 +93,28 @@ class _AddTxSheetState extends State<AddTxSheet> {
                   //solo pedir la categoria en los gastos
                   if (_type == TxType.expense)
                     DropdownButtonFormField<String>(
-                      initialValue: _categoryId, //
-                      decoration: const InputDecoration(labelText: 'Categoría'),
-                      items: categories
-                          .map((c) => DropdownMenuItem(value: c.id, child: Text(c.name)))
-                          .toList(),
+                      initialValue: _categoryId,
+                      //
+                      decoration: dropListDecorator(
+                        context,
+                        label: 'Categoria',
+                        prefixIcon: Icons.list,
+                      ),
+                      icon: Icon(
+                          Icons.expand_more,
+                          color: AppCustomColors.primaryBlue
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      dropdownColor: Theme.of(context).colorScheme.surface,
+                      items: categories.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
                       onChanged: (v) => setState(() => _categoryId = v),
                       validator: (v) => _type == TxType.expense && v == null ? 'Elige una categoría' : null,
                     ),
 
-
                   const SizedBox(height: 12),
-                  TextFormField(
+                  CustomTextFormField(
                     controller: _conceptCtrl,
-                    decoration: const InputDecoration(labelText: 'Concepto (1–24)'),
+                    hintText: 'Concepto (1–24)',
                     maxLength: 24,
                     validator: (v) {
                       final t = v?.trim() ?? '';
@@ -122,9 +124,9 @@ class _AddTxSheetState extends State<AddTxSheet> {
                     },
                   ),
                   const SizedBox(height: 8),
-                  TextFormField(
+                  CustomTextFormField(
                     controller: _amountCtrl,
-                    decoration: const InputDecoration(labelText: 'Monto (MXN)'),
+                    hintText: 'Monto (MXN)',
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     validator: (v) {
                       final t = v?.replaceAll(',', '.').trim() ?? '';
@@ -134,84 +136,83 @@ class _AddTxSheetState extends State<AddTxSheet> {
                     },
                   ),
                   const SizedBox(height: 12),
+
                   Row(
                     children: [
-                      Expanded(
-                        child: Text('Fecha: ${_date.toLocal().toString().split(' ').first}'),
-                      ),
-                      TextButton.icon(
-                        icon: const Icon(Icons.today),
-                        label: const Text('Cambiar'),
-                        onPressed: () async {
-                          final picked = await showDatePicker(
-                            context: context,
-                            initialDate: _date,
-                            firstDate: s,
-                            lastDate: e,
-                          );
+                      Expanded(child: Text('Fecha: ${_date.toLocal().toString().split(' ').first}', style: primaryTextStyle())),
+                      AppButton(
+                        color: AppCustomColors.primaryBlueWithAlpha,
+                        shapeBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                        onTap: () async {
+                          final picked = await showDatePicker(context: context, initialDate: _date, firstDate: s, lastDate: e);
                           if (picked != null) setState(() => _date = picked);
                         },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.today, color: Colors.white, size: 20),
+                            const SizedBox(width: 8),
+                            Text('Cambiar fecha', style: boldTextStyle(color: Colors.white)),
+                          ],
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton.icon(
-                      icon: const Icon(Icons.save),
-                      label: const Text('Guardar'),
-                      onPressed: () async {
-                        if (!_formKey.currentState!.validate()) return;
-                        _date = clampToMonth(month, _date);
+                  AppButton(
+                    color: AppCustomColors.primaryBlue,
+                    shapeBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    onTap: () async {
+                      if (!_formKey.currentState!.validate()) return;
+                      _date = clampToMonth(month, _date);
 
-                        if (_type == TxType.expense) {
-                          final needBudgets = await ref.refresh(shouldAskBudgetsProvider.future);
-                          if (needBudgets) {
-                            if (!mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Define primero el presupuesto de este mes.')),
-                            );
-                            return;
-                          }
+                      if (_type == TxType.expense) {
+                        final needBudgets = await ref.refresh(shouldAskBudgetsProvider.future);
+                        if (needBudgets) {
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Define primero el presupuesto de este mes.')));
+                          return;
                         }
+                      }
 
-                        final id = const Uuid().v4();
-                        final amt = double.parse(
-                          _amountCtrl.text.replaceAll(',', '.'),
-                        ).toStringAsFixed(2);
+                      final id = const Uuid().v4();
+                      final amt = double.parse(_amountCtrl.text.replaceAll(',', '.')).toStringAsFixed(2);
 
-                        final tx = Tx(
-                          id: id,
-                          date: _date,
-                          type: _type,
-                          categoryId: _type == TxType.expense ? _categoryId! : null, // nulo si es ingreso
-                          concept: _conceptCtrl.text.trim(),
-                          amount: double.parse(amt),
-                        );
+                      final tx = Tx(
+                        id: id,
+                        date: _date,
+                        type: _type,
+                        categoryId: _type == TxType.expense ? _categoryId! : null,
+                        // nulo si es ingreso
+                        concept: _conceptCtrl.text.trim(),
+                        amount: double.parse(amt),
+                      );
 
+                      final repo = ref.read(txRepositoryProvider);
+                      await repo.add(tx);
 
-                        final repo = ref.read(txRepositoryProvider);
-                        await repo.add(tx);
+                      // refrescar por si hay pendiens
+                      ref.invalidate(totalsProvider);
+                      ref.invalidate(categoryUsageProvider);
+                      //guardar al cerar mes
+                      ref.invalidate(monthTxsProvider);
 
-                        // refrescar por si hay pendiens
-                        ref.invalidate(totalsProvider);
-                        ref.invalidate(categoryUsageProvider);
-                        //guardar al cerar mes
-                        ref.invalidate(monthTxsProvider);
-
-                        if (!mounted) return;
-                        Navigator.of(context).pop(true);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              '${_type == TxType.expense ? 'Gasto' : 'Ingreso'} agregado',
-                            ),
-                          ),
-                        );
-                      },
+                      if (!mounted) return;
+                      Navigator.of(context).pop(true);
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${_type == TxType.expense ? 'Gasto' : 'Ingreso'} agregado')));
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.save, color: Colors.white, size: 20),
+                        const SizedBox(width: 8),
+                        Text(_type == TxType.expense ? 'Registrar Gasto' : 'Registrar Ingreso', style: boldTextStyle(color: Colors.white)),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),
