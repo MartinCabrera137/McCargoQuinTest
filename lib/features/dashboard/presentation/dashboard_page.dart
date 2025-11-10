@@ -63,7 +63,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
         final need = await ref.refresh(shouldAskBudgetsProvider.future);
         if (need == true && mounted) {
           _isBudgetSheetOpen = true;
-          // Marcar como "ya preguntado" ANTES de abrir (evita rebotes al navegar)
+          // Marcar como "ya preguntado" antes de reabir
           ref.read(promptedMonthsProvider.notifier).state = {...prompted, key};
 
           final saved = await showModalBottomSheet<bool>(context: context, isScrollControlled: true, builder: (_) => const BudgetSetupSheet());
@@ -98,17 +98,21 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
       body: totalsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
-        data: (t) => Padding(
+
+        data: (t) => SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.all(16),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _quickActions(context, ref),
               const SizedBox(height: 16),
-              // Totales
               Align(
                 alignment: Alignment.centerLeft,
-                child: Text(formatMonthYear(month)
-                    , style: boldTextStyle(size: 24, color: AppCustomColors.primaryBlue)),
+                child: Text(
+                  formatMonthYear(month),
+                  style: boldTextStyle(size: 24, color: AppCustomColors.primaryBlue),
+                ),
               ),
               const SizedBox(height: 8),
               SizedBox(
@@ -132,7 +136,6 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                 ),
               ),
               const SizedBox(height: 8),
-
               AppButton(
                 width: double.infinity,
                 elevation: 0,
@@ -175,16 +178,19 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                   ],
                 ),
               ),
-              //Movimeintos del mes
               const SizedBox(height: 16),
               _tabSelector(),
               const SizedBox(height: 8),
-              Expanded(
-                child: AnimatedSwitcher(duration: const Duration(milliseconds: 200), child: _tab == DashTab.budgets ? _budgetsList() : _movesList()),
+
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                child: _tab == DashTab.budgets ? _budgetsList() : _movesList(),
               ),
+              const SizedBox(height: 32),
             ],
           ),
         ),
+
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppCustomColors.primaryBlue,
@@ -327,28 +333,27 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
             ],
           ),
         ),
-        Expanded(
-          child: Consumer(
-            builder: (context, ref, _) {
-              final usageAsync = ref.watch(categoryUsageProvider);
-              return usageAsync.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Center(child: Text('Error: $e')),
-                data: (list) => ListView.separated(
-                  padding: const EdgeInsets.only(top: 8),
-                  physics: const BouncingScrollPhysics(),
-                  itemCount: list.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (_, i) => CategoryUsageTile(usage: list[i]),
-                ),
-              );
-            },
-          ),
+        const SizedBox(height: 8),
+        Consumer(
+          builder: (context, ref, _) {
+            final usageAsync = ref.watch(categoryUsageProvider);
+            return usageAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, _) => Center(child: Text('Error: $e')),
+              data: (list) => ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                padding: const EdgeInsets.only(top: 8),
+                itemCount: list.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                itemBuilder: (_, i) => CategoryUsageTile(usage: list[i]),
+              ),
+            );
+          },
         ),
       ],
     );
   }
-
   Widget _movesList() {
     return Consumer(
       builder: (context, ref, _) {
@@ -363,8 +368,9 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
             final items = list.take(50).toList();
             if (items.isEmpty) return const Center(child: Text('Aún no hay movimientos'));
             return ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
               padding: const EdgeInsets.only(top: 8),
-              physics: const BouncingScrollPhysics(),
               itemCount: items.length,
               itemBuilder: (_, i) {
                 final t = items[i];
@@ -400,5 +406,4 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
         );
       },
     );
-  }
-}
+  }}
