@@ -146,11 +146,22 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                   final ok = await showDialog<bool>(
                     context: context,
                     builder: (_) => AlertDialog(
-                      title: const Text('Cerrar mes'),
-                      content: const Text('Esto congelará las métricas del mes y avanzará al siguiente mes. ¿Continuar?'),
+                      title: Text('Cerrar mes', style: boldTextStyle(size: 18), textAlign: TextAlign.center),
+                      icon: Icon(Icons.save_alt_outlined, color: AppCustomColors.primaryBlue, size: 32),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
+                      surfaceTintColor: Colors.white,
+                      content: Text('Esto congelará las métricas del mes y avanzará al siguiente mes. ¿Continuar?', style: primaryTextStyle(),),
                       actions: [
                         TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
-                        FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Cerrar')),
+                        AppButton(
+                          color: AppCustomColors.primaryBlue,
+                          shapeBorder: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          text: 'Agregar',
+                          textColor: Colors.white,
+                          textStyle: primaryTextStyle(color: Colors.white),
+                          onTap: () => Navigator.pop(context, true), child: Text('Cerrar mes', style: primaryTextStyle(color: Colors.white))
+                        ),
                       ],
                     ),
                   );
