@@ -7,6 +7,7 @@ se "reinician" los datos.
 ## Requisitos
 - **Flutter 3.16+ / Dart 3+**
 - **Android Studio** o **Xcode**
+- Se recomienda compilar en Android debido a la firma que solicita iOS, esto hara la revisión más simple.
 - **iOS**: requiere configurar *Signing & Capabilities* para compilar en dispositivo/simulator.
 - No se requieren claves, archivos `.env` ni servicios externos.
 
