@@ -150,7 +150,7 @@ class _DashboardPageState extends ConsumerState<DashboardPage> {
                       icon: Icon(Icons.save_alt_outlined, color: AppCustomColors.primaryBlue, size: 32),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
                       surfaceTintColor: Colors.white,
-                      content: Text('Esto congelará las métricas del mes y avanzará al siguiente mes. ¿Continuar?', style: primaryTextStyle(),),
+                      content: Text('Esto congelará las métricas del mes y avanzará al siguiente. ¿Continuar?', style: primaryTextStyle(),),
                       actions: [
                         TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
                         AppButton(

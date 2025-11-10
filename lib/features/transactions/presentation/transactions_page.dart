@@ -6,6 +6,7 @@ import 'package:nb_utils/nb_utils.dart';
 import '../../../app/providers.dart';
 import '../../../core/formatters/date_formatter.dart';
 import '../../../core/utils/colors.dart';
+import '../../../domain/entities/category.dart';
 import '../../../domain/entities/tx.dart';
 
 class TransactionsPage extends ConsumerStatefulWidget {
@@ -34,9 +35,9 @@ class _TransactionsPageState extends ConsumerState<TransactionsPage> {
   @override
   Widget build(BuildContext context) {
     final repo = ref.watch(txRepositoryProvider);
-    final cats = ref.watch(categoriesProvider);
+    final cats = ref.watch(categoriesByMonthProvider(_selectedMonth));
 
-    String? catName(String? id) {
+    String? catName(List<Category> cats, String? id) {
       if (id == null) return null;
       try {
         return cats.firstWhere((c) => c.id == id).name;
@@ -77,6 +78,8 @@ class _TransactionsPageState extends ConsumerState<TransactionsPage> {
                       icon: Icons.chevron_left,
                       onTap: () => setState(() {
                         _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month - 1);
+                        _categoryId = null;
+
                       }),
                     ),
                     Expanded(
@@ -98,6 +101,8 @@ class _TransactionsPageState extends ConsumerState<TransactionsPage> {
                       icon: Icons.chevron_right,
                       onTap: () => setState(() {
                         _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month + 1);
+                        _categoryId = null;
+
                       }),
                     ),
                   ],
@@ -173,10 +178,10 @@ class _TransactionsPageState extends ConsumerState<TransactionsPage> {
                       itemCount: items.length,
                       itemBuilder: (_, i) {
                         final t = items[i];
-                        final name = t.type == TxType.expense ? catName(t.categoryId) : null;
+                        final name = catName(cats, t.categoryId);
                         return TransactionTile(
                           tx: t,
-                          categoryName: name,
+                          categoryName: t.type == TxType.expense ? name : null,
                           onDelete: null,
                           onTap: null,
                         );

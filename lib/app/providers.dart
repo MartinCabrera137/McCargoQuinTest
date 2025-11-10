@@ -67,3 +67,12 @@ final categoriesProvider = Provider<List<Category>>((ref) {
   final m = ref.watch(currentMonthProvider);
   return repo.getByMonth(m);
 });
+
+// listas de categorías por mes para el historial
+final categoriesByMonthProvider =
+Provider.family<List<Category>, DateTime>((ref, month) {
+  final repo = ref.read(monthCategoryRepositoryProvider);
+  final m = DateTime(month.year, month.month);
+  return repo.getByMonth(m);
+});
+
